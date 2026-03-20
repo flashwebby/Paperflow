@@ -1,0 +1,120 @@
+"use client";
+
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { ARXIV_CATEGORIES } from "@/lib/arxiv";
+import type { SortOption } from "@/types";
+
+interface FilterBarProps {
+  category?: string;
+  sortBy?: SortOption;
+  onCategoryChange: (category: string) => void;
+  onSortChange: (sort: SortOption) => void;
+  resultCount?: number;
+}
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "relevance", label: "Relevance" },
+  { value: "lastUpdatedDate", label: "Last Updated" },
+  { value: "submittedDate", label: "Submission Date" },
+];
+
+const QUICK_CATEGORIES = [
+  { term: "", label: "All" },
+  { term: "cs.AI", label: "AI" },
+  { term: "cs.LG", label: "ML" },
+  { term: "cs.CV", label: "Vision" },
+  { term: "cs.CL", label: "NLP" },
+  { term: "quant-ph", label: "Quantum" },
+  { term: "physics.gen-ph", label: "Physics" },
+  { term: "math.ST", label: "Math" },
+];
+
+export function FilterBar({
+  category = "",
+  sortBy = "relevance",
+  onCategoryChange,
+  onSortChange,
+  resultCount,
+}: FilterBarProps) {
+  const [showMore, setShowMore] = useState(false);
+
+  return (
+    <div className="space-y-3">
+      {/* Quick category filters */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {QUICK_CATEGORIES.map((cat) => (
+          <button
+            key={cat.term}
+            onClick={() => onCategoryChange(cat.term)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
+              category === cat.term
+                ? "bg-amber-500/15 border-amber-500/40 text-amber-300"
+                : "bg-ink-800 border-ink-700 text-ink-400 hover:border-ink-500 hover:text-ink-200"
+            )}
+          >
+            {cat.label}
+          </button>
+        ))}
+
+        <button
+          onClick={() => setShowMore(!showMore)}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium border border-dashed border-ink-700 text-ink-500 hover:text-ink-300 hover:border-ink-500 transition-all"
+        >
+          {showMore ? "Less ↑" : "More ↓"}
+        </button>
+      </div>
+
+      {/* Extended categories */}
+      {showMore && (
+        <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-ink-900 border border-ink-800 animate-in">
+          {Object.entries(ARXIV_CATEGORIES).map(([term, label]) => (
+            <button
+              key={term}
+              onClick={() => {
+                onCategoryChange(term);
+                setShowMore(false);
+              }}
+              className={cn(
+                "px-2.5 py-1 rounded-md text-xs border transition-all",
+                category === term
+                  ? "bg-amber-500/15 border-amber-500/40 text-amber-300"
+                  : "bg-ink-800 border-ink-700 text-ink-400 hover:border-ink-500 hover:text-ink-200"
+              )}
+            >
+              <span className="font-mono text-[10px] text-ink-500 mr-1">{term}</span>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Sort + results count */}
+      <div className="flex items-center justify-between">
+        {resultCount !== undefined && (
+          <p className="text-xs text-ink-500">
+            <span className="text-ink-300 font-medium">{resultCount.toLocaleString()}</span> results
+          </p>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-xs text-ink-500">Sort:</span>
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => onSortChange(opt.value)}
+              className={cn(
+                "text-xs px-2.5 py-1 rounded-md transition-colors",
+                sortBy === opt.value
+                  ? "text-amber-400 bg-amber-400/10"
+                  : "text-ink-500 hover:text-ink-300"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
